@@ -7,6 +7,24 @@ from post_process_binary_mask import load_binary_mask
 
 from collections import Counter
 
+def get_most_common_value(group, axis_key):
+    """Get the most common value for the given axis in a group."""
+    axis_values = [item[axis_key] for item in group]
+    most_common_value = Counter(axis_values).most_common(1)[0][0]
+    return most_common_value
+
+def update_group_axis_values(group, axis_key, value):
+    """Update the axis values of all entries in the group to the given value."""
+    for entry in group:
+        entry[axis_key] = value
+
+def close_and_reset_group(groups, current_group, axis_key):
+    """Close the current group, update axis values, and add it to groups."""
+    most_common_value = get_most_common_value(current_group, axis_key)
+    update_group_axis_values(current_group, axis_key, most_common_value)
+    groups.append(current_group)
+    return most_common_value  # Return the most common value for the next group's initialization
+
 def process_groups(my_list, max_consecutive_increase_count=4, axis='y'):
     """
     Process groups of entries in `my_list` based on consecutive increases in the x or y values.
@@ -45,38 +63,19 @@ def process_groups(my_list, max_consecutive_increase_count=4, axis='y'):
 
         # If there are 'max_consecutive_increase_count' consecutive increases, close the current group
         if consecutive_increase_count >= max_consecutive_increase_count:
-            # Get the most common value of the axis in the current group
-            axis_values = [item[axis_key] for item in current_group]
-            most_common_value = Counter(axis_values).most_common(1)[0][0]
-
-            # Set all axis values in the current group to the most common value
-            for entry in current_group:
-                entry[axis_key] = most_common_value
-
-            # Add the group to the list of groups
-            groups.append(current_group)
-
+            prev_value = close_and_reset_group(groups, current_group, axis_key)
             # Start a new group with the current item
             current_group = [entry]
-            prev_value = entry[axis_key]  # Update the previous value for the new group
             consecutive_increase_count = 0
 
         # Update the previous value to the most common value in the current group
-        prev_value = Counter([item[axis_key] for item in current_group]).most_common(1)[0][0]
+        prev_value = get_most_common_value(current_group, axis_key)
 
     # Process the last group
     if current_group:
-        axis_values = [item[axis_key] for item in current_group]
-        most_common_value = Counter(axis_values).most_common(1)[0][0]
-        for entry in current_group:
-            entry[axis_key] = most_common_value
-
-        groups.append(current_group)
+        close_and_reset_group(groups, current_group, axis_key)
 
     return my_list
-
-
-
 
 
 # img_path = "sample_result_mask_3.png"
