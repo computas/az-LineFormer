@@ -7,21 +7,35 @@ from post_process_binary_mask import load_binary_mask
 
 from collections import Counter
 
-def process_groups(my_list, max_consecutive_increase_count = 4):
+def process_groups(my_list, max_consecutive_increase_count=4, axis='y'):
+    """
+    Process groups of entries in `my_list` based on consecutive increases in the x or y values.
+
+    Parameters:
+        my_list (list of dicts): A list of dictionaries containing 'x' and 'y' values.
+        max_consecutive_increase_count (int): The number of consecutive increases that trigger a new group.
+        axis (str): Either 'x' or 'y' to specify which axis to use for processing ('x' or 'y').
+        
+    Returns:
+        list: A list of processed groups, where values in the axis are adjusted based on most common value.
+    """
     groups = []
     current_group = []
     consecutive_increase_count = 0
-    prev_voted_y = None  # This will hold the previous voted 'y'
+    prev_value = None  # This will hold the previous value of the axis (either x or y)
+
+    # Choose the key based on the axis ('x' or 'y')
+    axis_key = axis
 
     for i, entry in enumerate(my_list):
         if not current_group:
             # Start a new group
             current_group.append(entry)
-            prev_voted_y = entry['y']  # Initialize the voted y as the first 'y' value
+            prev_value = entry[axis_key]  # Initialize the value as the first one
             continue
 
-        # Check if the current 'y' is lower than the previous voted y
-        if entry['y'] > prev_voted_y:
+        # Check if the current value on the chosen axis is greater than the previous value
+        if entry[axis_key] > prev_value:
             consecutive_increase_count += 1
         else:
             consecutive_increase_count = 0
@@ -29,37 +43,38 @@ def process_groups(my_list, max_consecutive_increase_count = 4):
         # Add the current entry to the current group
         current_group.append(entry)
 
-        # If there are 4 consecutive decreases, close the current group and start a new one
+        # If there are 'max_consecutive_increase_count' consecutive increases, close the current group
         if consecutive_increase_count >= max_consecutive_increase_count:
-            # Vote for the most common 'y' in the current group
-            y_values = [item['y'] for item in current_group]
-            most_common_y = Counter(y_values).most_common(1)[0][0]  # Get the most frequent 'y'
-            
-            # Set all 'y' values in the current group to the most common 'y'
+            # Get the most common value of the axis in the current group
+            axis_values = [item[axis_key] for item in current_group]
+            most_common_value = Counter(axis_values).most_common(1)[0][0]
+
+            # Set all axis values in the current group to the most common value
             for entry in current_group:
-                entry['y'] = most_common_y
+                entry[axis_key] = most_common_value
 
             # Add the group to the list of groups
             groups.append(current_group)
 
             # Start a new group with the current item
             current_group = [entry]
-            prev_voted_y = entry['y']  # Update previous voted y for the new group
+            prev_value = entry[axis_key]  # Update the previous value for the new group
             consecutive_increase_count = 0
 
-        # Update the previous voted y to the most common y so far in the current group
-        prev_voted_y = Counter([item['y'] for item in current_group]).most_common(1)[0][0]
+        # Update the previous value to the most common value in the current group
+        prev_value = Counter([item[axis_key] for item in current_group]).most_common(1)[0][0]
 
     # Process the last group
     if current_group:
-        y_values = [item['y'] for item in current_group]
-        most_common_y = Counter(y_values).most_common(1)[0][0]
+        axis_values = [item[axis_key] for item in current_group]
+        most_common_value = Counter(axis_values).most_common(1)[0][0]
         for entry in current_group:
-            entry['y'] = most_common_y
+            entry[axis_key] = most_common_value
 
         groups.append(current_group)
 
     return my_list
+
 
 
 
@@ -80,38 +95,6 @@ print(x_range)
 
 
 
-# Track Kp and vote over them
-
-
-
-
-def cnt_kps_in_line(kps, current_y):
-    filter_kps = [kp for kp in kps if kp['y'] == current_y]
-    return len(filter_kps)
-
-
-def clean_kps(kps):
-    new_kps = []
-
-    for kp in kps:
-        x, y = kp['x'], kp['y']
-
-        inline_cnt = cnt_kps_in_line(kps, current_y=y)
-
-        _dict = {
-            'x': x,
-            'y': y,
-            'inline_cnt': inline_cnt
-        }
-        new_kps.append(_dict)
-
-    return new_kps
-
-
-        
-
-    # pass
-
 key_points = line_utils.get_kp(binary_mask, interval=1, x_range=None, get_num_lines=False, get_center=True)
 new_image = line_utils.draw_kps(new_image, key_points, color=(200,127,127))
 
@@ -119,11 +102,13 @@ key_points_y = line_utils.get_kp_y(binary_mask, interval=1, y_range=None, get_nu
 new_image = line_utils.draw_kps(new_image, key_points_y, color=(0,127,255))
 
 
-adjusted_key_points = clean_kps(key_points)
-adjusted_key_points = process_groups(adjusted_key_points)
-adjusted_key_points = [{'x': point['x'], 'y': point['y']} for point in adjusted_key_points]
 
+adjusted_key_points = process_groups(key_points, axis='y')
+new_image = line_utils.draw_kps(new_image, adjusted_key_points, color=(0,255,0))
+
+adjusted_key_points = process_groups(key_points_y, axis='x')
 new_image = line_utils.draw_kps(new_image, adjusted_key_points, color=(0,0,255))
+
 cv2.imwrite("sample_result_mask.png", new_image)
 assert False
 all_key_points = key_points + key_points_y
