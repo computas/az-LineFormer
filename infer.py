@@ -4,7 +4,6 @@ import cv2
 from skimage.morphology import skeletonize
 from scipy.interpolate import CubicSpline, interp1d
 import matplotlib.pyplot as plt
-from mmdet.apis import (inference_detector, init_detector)
 
 # import sys
 # sys.path.append("/home/csgrad/jayashok/Mask2Former/")
@@ -45,17 +44,6 @@ def get_distinct_colors(n):
     huePartition = 1.0 / (n + 1) 
     return (hsv_to_bgr(huePartition * value, 1.0, 1.0) for value in range(0, n))
 
-
-def load_model(config, ckpt, device):
-    global model
-    model = init_detector(config, ckpt, device=device)
-    return
-
-
-def do_instance(model, img, score_thr=0.3):
-    # test a single image
-    result = inference_detector(model, img)
-    return parse_result(result, score_thr)
 
 def parse_result(result, score_thresh=0.3):
     line_data = result
@@ -205,7 +193,8 @@ def get_dataseries(img, annot=None, to_clean=False, post_proc=False, mask_kp_sam
     # Image.fromarray(clean_img)
 
     # get inference masks
-    inst_masks = do_instance(model, clean_img, score_thr=0.3)
+    # inst_masks = do_instance(model, clean_img, score_thr=0.3)
+    inst_masks = [img]
     # return inst_masks
     # mask_thresh = 0.5
     inst_masks = [line_mask.astype(np.uint8)*255 for line_mask in inst_masks]
@@ -228,6 +217,7 @@ def get_dataseries(img, annot=None, to_clean=False, post_proc=False, mask_kp_sam
         # print(line_mask)
         x_range = line_utils.get_xrange(line_mask)
         line_ds = line_utils.get_kp(line_mask, interval=mask_kp_sample_interval, x_range=x_range, get_num_lines=False, get_center=True)
+        print(line_ds)
         
         line_ds = interpolate(line_ds, inter_type='linear')
 

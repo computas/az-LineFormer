@@ -112,7 +112,7 @@ def get_kp(line_img, interval=10, x_range=None, get_num_lines=False, get_center=
         x_range: Range of x values, [xmin, xmax), within which pred points (x,y) are to be sampled
         returns: a list [{'x': <x_val>, 'y': <y_val>}, ....] of line points found in the binary line_img
     """
-
+    
     im_h, im_w = line_img.shape[:2]
     kps = []
     # delta = 2
@@ -171,6 +171,71 @@ def get_kp(line_img, interval=10, x_range=None, get_num_lines=False, get_center=
         
     return res
 
+def get_kp_y(line_img, interval=10, y_range=None, get_num_lines=False, get_center=True):
+    """
+        line_img: np.ndarray => black and white binary mask of line
+        black => background => 0
+        white => foreground line pixel => 255
+        interval: delta_y at which x, y points are sampled across the line_img
+        y_range: Range of y values, [ymin, ymax), within which pred points (x, y) are to be sampled
+        returns: a list [{'x': <x_val>, 'y': <y_val>}, ....] of line points found in the binary line_img
+    """
+    
+    im_h, im_w = line_img.shape[:2]
+    kps = []
+    if y_range is None:
+        y_range = (0, im_h)
+    
+    # Track the number of horizontal binary components found at every y => estimate num lines
+    num_comps = []
+    for y in range(y_range[0], y_range[1], interval):
+        # Get the corresponding white pixel in this row
+        fg_x = []
+        fg_x_center = []
+        all_x_points = np.where(line_img[y, :] == 255)[0]  # Get x-values where pixels are white
+        if all_x_points.size != 0:
+            fg_x.append(all_x_points[0])
+            x = all_x_points[0]
+            n_comps = 1
+            for idx in range(1, len(all_x_points)):
+                x_next = all_x_points[idx]
+                # Detect break between consecutive white pixels along x-axis
+                if abs(x_next - x) > 2:
+                    n_comps += 1
+                    # Break found, handle separate components
+                    if fg_x[-1] != x:
+                        fg_x_center.append(round(x + fg_x[-1]) // 2)
+                        fg_x.append(x)
+                    else:
+                        fg_x_center.append(x)
+                        
+                    fg_x.append(x_next)
+                    
+                x = x_next
+              
+            # Handle last point
+            if fg_x[-1] != x:
+                fg_x_center.append(round(x + fg_x[-1]) // 2)
+                fg_x.append(x)
+            else:
+                fg_x_center.append(x)
+                    
+            num_comps.append(n_comps)
+        
+        # Append key points found in this row
+        if (fg_x or fg_x_center) and (n_comps == 1):
+            if get_center:
+                kps.extend([{'x': x, 'y': float(y)} for x in fg_x_center])
+            else:
+                kps.extend([{'x': x, 'y': float(y)} for x in fg_x])
+        
+    res = kps
+    
+    if get_num_lines:
+        res = kps, int(np.percentile(num_comps, 85))
+        
+    return res
+
 
 def draw_edge(img, edge):
     inter_points = get_interp_points(edge[0], edge[1])
@@ -193,7 +258,7 @@ def draw_kps(img, kps, color=(0,255,0), classes=None, **draw_options):
         color_map = dict(zip(range(classes.max()+1), colors))
         # print(color_map)
     for idx, kp in enumerate(kps):
-        options = dict(color=color_map[classes[idx]], markerType=cv2.MARKER_CROSS, markerSize=2, thickness=2, line_type=8)
+        options = dict(color=color_map[classes[idx]], markerType=cv2.MARKER_SQUARE, markerSize=1, thickness=1, line_type=8)
         options.update(draw_options)
         annot_img = cv2.drawMarker(annot_img, (int(kp['x']), int(kp['y'])), **options)
     return annot_img
