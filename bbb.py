@@ -292,8 +292,8 @@ intersection_points = find_intersections(group_x_dict, group_y_dict)
 intersection_points = keep_first_point_found_on_x(intersection_points, group_x_dict)
 
 
-new_image = cv2.imread('plt_0.png')
-new_image = draw_ponints(new_image, intersection_points, color=(127, 0, 127), radius=5)
+# new_image = cv2.imread('plt_0.png')
+new_image = draw_ponints(new_image, intersection_points, color=(127, 0, 127), radius=2)
 
 df = get_kaplan_meier_data_from_events(intersection_points, 1)
 print(df)
