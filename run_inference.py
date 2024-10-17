@@ -8,14 +8,18 @@ CKPT = "iter.pth"
 CONFIG = "km_swin_t_config.py"
 DEVICE = "cpu"
 
-def run_inference(img):
+def run_inference(img, x_max=None):
     line_dataseries, inst_masks = infer.get_dataseries(img, to_clean=False, return_masks=True)
 
     # Visualize extracted line keypoints
     prediction_image = line_utils.draw_lines(img, line_utils.points_to_array(line_dataseries))
     all_df = []
     for idx, inst_mask in enumerate(inst_masks):
-        df = extract_events_df(inst_mask, group_idx=idx, write_debug=True, map_to_plot_coordinates=False)
+        if x_max:
+            df = extract_events_df(inst_mask, group_idx=idx, write_debug=True, map_to_plot_coordinates=True, plot_end=(x_max, 0))
+        else:
+            df = extract_events_df(inst_mask, group_idx=idx, write_debug=True, map_to_plot_coordinates=False)
+
         all_df.append(df)
 
     kaplan_meier_df = pd.concat(all_df, ignore_index=True)
