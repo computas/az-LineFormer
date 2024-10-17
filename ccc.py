@@ -1,67 +1,12 @@
 import cv2 
 import line_utils
-import infer
 
-from skimage import io, img_as_bool, morphology
-import matplotlib.pyplot as plt
-import numpy as np
 from post_process_binary_mask import load_binary_mask
 import post_process_prediction.post_process_groups as post_process_groups
-
+import post_process_prediction.post_process_utils as post_process_utils
 
 from post_process_binary_mask import get_kaplan_meier_data_from_events
 
-
-def get_skeleton(mask):
-    # Convert to a binary image
-    binary_mask = img_as_bool(mask)
-    skeleton = morphology.skeletonize(binary_mask)
-    skeleton = (skeleton * 255).astype(np.uint8)
-
-    return skeleton
-
-
-def find_starting_point(binary_mask):
-    # Find most top left point
-    y, x = np.where(binary_mask == 255)
-    coordinates = sorted(zip(x, y), key=lambda coord: (coord[0], coord[1]))
-    return coordinates[0]
-
-
-def get_kp_first_hit_x(binary_mask, steps=10):
-    height, width = binary_mask.shape
-    starting_point = find_starting_point(binary_mask)
-
-    kps = []
-
-    for x in range(starting_point[0], width-1, steps):
-        for y in range(0, height-1):
-            if binary_mask[y, x] == 255:
-                kps.append({
-                    'x': x,
-                    'y': y
-                })
-                break
-
-    return kps
-
-
-def get_kp_first_hit_y(binary_mask, steps=10):
-    height, width = binary_mask.shape
-    starting_point = find_starting_point(binary_mask)
-
-    kps = []
-
-    for y in range(starting_point[1], width, steps):
-        for x in range(width-1, 0, -1):
-            if binary_mask[y, x] == 255:
-                kps.append({
-                    'x': x,
-                    'y': y
-                })
-                break
-
-    return kps
                 
 
 
@@ -73,7 +18,7 @@ binary_mask = load_binary_mask(img_path)
 
 new_image = cv2.cvtColor(binary_mask, cv2.COLOR_GRAY2BGR)
 # new_image = np.zeros((binary_mask.shape[0], binary_mask.shape[1], 3), dtype=np.uint8)
-binary_mask = get_skeleton(binary_mask)
+binary_mask = post_process_utils.get_skeleton(binary_mask)
 
 
 cv2.imwrite("skeleton.png", binary_mask)
@@ -89,10 +34,10 @@ x_range = line_utils.get_xrange(binary_mask)
 
 # key_points_x = line_utils.get_kp(binary_mask, interval=1, x_range=None, get_num_lines=False, get_center=True)
 
-key_points_x = get_kp_first_hit_x(binary_mask, steps=1)
+key_points_x = post_process_utils.get_kp_first_hit_x(binary_mask, steps=1)
 # new_image = line_utils.draw_kps(new_image, key_points_x, color=(200,127,127))
 
-key_points_y = get_kp_first_hit_y(binary_mask, steps=1)
+key_points_y = post_process_utils.get_kp_first_hit_y(binary_mask, steps=1)
 # new_image = line_utils.draw_kps(new_image, key_points_y, color=(255,127,0))
 
 # key_points_y = line_utils.get_kp_y(binary_mask, interval=1, y_range=None, get_num_lines=False, get_center=True)
