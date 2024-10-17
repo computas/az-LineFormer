@@ -6,7 +6,8 @@ from skimage import io, img_as_bool, morphology
 import matplotlib.pyplot as plt
 import numpy as np
 from post_process_binary_mask import load_binary_mask
-from collections import Counter
+import post_process_prediction.post_process_groups as post_process_groups
+
 
 from post_process_binary_mask import get_kaplan_meier_data_from_events
 
@@ -64,100 +65,16 @@ def get_kp_first_hit_y(binary_mask, steps=10):
                 
 
 
-def process_groups(my_list, max_consecutive_increase_count=4, axis='y'):
-    """
-    Process groups of entries in `my_list` based on consecutive increases in the x or y values.
 
-    Parameters:
-        my_list (list of dicts): A list of dictionaries containing 'x' and 'y' values.
-        max_consecutive_increase_count (int): The number of consecutive increases that trigger a new group.
-        axis (str): Either 'x' or 'y' to specify which axis to use for processing ('x' or 'y').
-        
-    Returns:
-        list: A list of processed groups, where values in the axis are adjusted based on most common value.
-    """
-    groups = []
-    groups_info = []
-    current_group = []
-    consecutive_increase_count = 0
-    prev_value = None  # This will hold the previous value of the axis (either x or y)
-
-    # Choose the key based on the axis ('x' or 'y')
-    axis_key = axis
-
-    for i, entry in enumerate(my_list):
-        if not current_group:
-            # Start a new group
-            current_group.append(entry)
-            prev_value = entry[axis_key]  # Initialize the value as the first one
-            continue
-
-        # Check if the current value on the chosen axis is greater than the previous value
-        if entry[axis_key] > prev_value:
-            consecutive_increase_count += 1
-        else:
-            consecutive_increase_count = 0
-
-        # Add the current entry to the current group
-        current_group.append(entry)
-
-        # If there are 'max_consecutive_increase_count' consecutive increases, close the current group
-        if consecutive_increase_count >= max_consecutive_increase_count:
-            # Get the most common value of the axis in the current group
-            axis_values = [item[axis_key] for item in current_group]
-            most_common_value = Counter(axis_values).most_common(1)[0][0]
-
-            # Set all axis values in the current group to the most common value
-            for entry in current_group:
-                entry[axis_key] = most_common_value
-
-            # Add the group to the list of groups
-            groups.append(current_group)
-
-
-            start_pos = (current_group[0]['x'], current_group[0]['y'])
-
-            # Start a new group with the current item
-            current_group = [entry]
-            prev_value = entry[axis_key]  # Update the previous value for the new group
-            consecutive_increase_count = 0
-
-            groups_info.append({
-                'group_id': len(groups),
-                'start_pos': start_pos,
-                'end_pos': (entry['x'], entry['y']),
-                'most_common_value': prev_value
-            })
-
-        # Update the previous value to the most common value in the current group
-        prev_value = Counter([item[axis_key] for item in current_group]).most_common(1)[0][0]
-
-    # Process the last group
-    if current_group:
-        axis_values = [item[axis_key] for item in current_group]
-        most_common_value = Counter(axis_values).most_common(1)[0][0]
-        for entry in current_group:
-            entry[axis_key] = most_common_value
-
-        groups.append(current_group)
-
-        start_pos = (current_group[0]['x'], current_group[0]['y'])
-        groups_info.append({
-            'group_id': len(groups),
-            'start_pos': start_pos,
-            'end_pos': (entry['x'], entry['y']),
-            'most_common_value': prev_value
-        })
-
-    return my_list, groups_info
-
-
-img_path = "sample_result_mask_3.png"
-# img_path = "inst_mask_3.png"
+# img_path = "sample_result_mask_3.png"
+img_path = "inst_mask_3.png"
+img_path = "inst_mask_0.png"
 binary_mask = load_binary_mask(img_path)
 
 new_image = cv2.cvtColor(binary_mask, cv2.COLOR_GRAY2BGR)
+new_image = np.zeros((binary_mask.shape[0], binary_mask.shape[1], 3), dtype=np.uint8)
 binary_mask = get_skeleton(binary_mask)
+
 
 cv2.imwrite("skeleton.png", binary_mask)
 
@@ -176,7 +93,7 @@ key_points_x = get_kp_first_hit_x(binary_mask, steps=1)
 # new_image = line_utils.draw_kps(new_image, key_points_x, color=(200,127,127))
 
 key_points_y = get_kp_first_hit_y(binary_mask, steps=1)
-# new_image = line_utils.draw_kps(new_image, key_points_y, color=(127,127,200))
+# new_image = line_utils.draw_kps(new_image, key_points_y, color=(255,127,0))
 
 # key_points_y = line_utils.get_kp_y(binary_mask, interval=1, y_range=None, get_num_lines=False, get_center=True)
 # new_image = line_utils.draw_kps(new_image, key_points_y, color=(0,127,255))
@@ -252,16 +169,16 @@ def keep_first_point_found_on_x(points, group_x_dict):
 
 
 
-key_points_x, group_x_dict = process_groups(key_points_x, axis='y')
+key_points_x, group_x_dict = post_process_groups.process_groups(key_points_x, axis='y')
 group_x_dict = extend_lines_x(binary_mask, group_x_dict)
 # new_image = draw_lines(new_image, group_x_dict, color=(0, 255, 0))
 # new_image = line_utils.draw_kps(new_image, key_points_x, color=(0,255,0))
 
 
-key_points_y, group_y_dict = process_groups(key_points_y, axis='x')
+key_points_y, group_y_dict = post_process_groups.process_groups(key_points_y, axis='x')
 group_y_dict = extend_lines_y(binary_mask, group_y_dict)
-# new_image = draw_lines(new_image, group_y_dict, color=(0, 0, 255))
-# new_image = line_utils.draw_kps(new_image, key_points_y, color=(0,0,255))
+# new_image = draw_lines(new_image, group_y_dict, color=(255, 127, 0))
+# new_image = line_utils.draw_kps(new_image, key_points_y, color=(255,127,))
 
 
 def find_intersections(horizontal_lines, vertical_lines):
@@ -288,16 +205,91 @@ def find_intersections(horizontal_lines, vertical_lines):
 
 
 
+
+def draw_km_lines(img, intersection_points, start_point, end_point, color=(0, 0, 255)):
+    intersection_points = interpolate_points(intersection_points)
+
+    intersection_points.insert(0, start_point)
+    intersection_points.append(end_point)
+    prev_point = None
+    for point in intersection_points:
+        if prev_point is None:
+            prev_point = point
+            continue
+        
+        
+        img = cv2.line(img, prev_point, point, color, 1)
+        prev_point = point
+
+    return img
+
+
+def interpolate_points(points):
+    interpolated = []
+    for i in range(len(points) - 1):
+        x1, y1 = points[i]
+        x2, y2 = points[i+1]
+        interpolated.append((x1, y1))
+        interpolated.append((x1, y2))
+    interpolated.append(points[-1])  # Adding the last point (no interpolation needed)
+    return interpolated
+
+
+
+def rescale_coordinates(intersection_points, plot_start_coord, plot_end_coord):
+
+    x_pixel_min, y_pixel_max = intersection_points[0]
+    x_pixel_max, y_pixel_min = intersection_points[-1]
+
+    x_coord_min, y_coord_max = plot_start_coord
+    x_coord_max, y_coord_min = plot_end_coord
+
+    # Rescaling function
+    def rescale(value, old_min, old_max, new_min, new_max):
+        return (value - old_min) / (old_max - old_min) * (new_max - new_min) + new_min
+
+    # Empty list to store the results
+    mapped_coordinates = []
+
+    # Loop over the pixel values
+    for x, y in intersection_points:
+        new_x = rescale(x, x_pixel_min, x_pixel_max, x_coord_min, x_coord_max)
+        new_y = rescale(y, y_pixel_min, y_pixel_max, y_coord_min, y_coord_max)
+        mapped_coordinates.append((new_x, new_y))
+
+    return mapped_coordinates
+
+
+
 intersection_points = find_intersections(group_x_dict, group_y_dict)
 intersection_points = keep_first_point_found_on_x(intersection_points, group_x_dict)
 
 
 # new_image = cv2.imread('plt_0.png')
-new_image = draw_ponints(new_image, intersection_points, color=(127, 0, 127), radius=2)
+new_image = draw_ponints(new_image, intersection_points, color=(0, 238, 220), radius=5)
 
+
+start_point = group_x_dict[0]['start_pos']
+end_point = group_y_dict[-1]['start_pos']
+
+real_start_point = (0, 1)
+real_end_point = (890, 0)
+# new_image = draw_km_lines(new_image, intersection_points, start_point, end_point)
 df = get_kaplan_meier_data_from_events(intersection_points, 1)
 print(df)
 
+intersection_points.insert(0, start_point)
+intersection_points.append(end_point)
+
+intersection_points = rescale_coordinates(intersection_points, real_start_point, real_end_point)
+df = get_kaplan_meier_data_from_events(intersection_points, 1)
+
+
+
+print(df)
+
+
+print(group_x_dict)
 
 
 cv2.imwrite("sample_result_mask.png", new_image)
