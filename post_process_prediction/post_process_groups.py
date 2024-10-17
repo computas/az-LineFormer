@@ -1,12 +1,81 @@
 from collections import Counter
 
 
-def create_inline_groups(key_points, ):
-    inline_groups = []
+
+def vote_on_line(inline_group, axis):
+    voted_line = Counter([item[axis] for item in inline_group]).most_common(1)[0][0]
+    return voted_line
+
+
+def get_inline_group_info(group_id, inline_group, voted_line, axis):
+    start_pos = list(inline_group[0])
+    start_pos[axis] = voted_line
+    start_pos = tuple(start_pos)
+
+    end_pos = list(inline_group[-1])
+    end_pos[axis] = voted_line
+    end_pos = tuple(end_pos)
+
+    inline_group_info = {
+        'group_id': group_id,
+        'start_pos': start_pos,
+        'end_pos': end_pos,
+        'most_common_value': voted_line
+    }
+
+    return inline_group_info
+
+
+def get_inline_groups(key_points, max_consecutive_increase_count=4, axis_to_group='y'):
     inline_groups_info = []
     current_inline_group = []
     consecutive_increase_count = 0
 
+    prev_line = None
+
+    axis = 1 if axis_to_group == 'y' else 0
+
+    for kp in key_points:
+
+        if len(current_inline_group) == 0:
+            current_inline_group.append(kp)
+            prev_line = kp[axis]
+            continue
+        
+        current_inline_group.append(kp)
+
+        if kp[axis] > prev_line:
+            consecutive_increase_count += 1
+        else:
+            consecutive_increase_count = 0
+
+        prev_line = vote_on_line(current_inline_group, axis)
+
+        # Start new inline group
+        if consecutive_increase_count >= max_consecutive_increase_count:
+            info = get_inline_group_info(
+                group_id=len(inline_groups_info), 
+                inline_group=current_inline_group, 
+                voted_line=prev_line, 
+                axis=axis
+            )
+            inline_groups_info.append(info)
+            current_inline_group = [kp]
+            consecutive_increase_count = 0
+
+
+    # Fill in last group
+    if current_inline_group:
+        info = get_inline_group_info(
+            group_id=len(inline_groups_info), 
+            inline_group=current_inline_group, 
+            voted_line=prev_line, 
+            axis=axis
+        )
+        inline_groups_info.append(info)
+
+
+    return inline_groups_info
 
 
 

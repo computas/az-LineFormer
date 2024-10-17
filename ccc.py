@@ -169,13 +169,18 @@ def keep_first_point_found_on_x(points, group_x_dict):
 
 
 
-key_points_x, group_x_dict = post_process_groups.process_groups(key_points_x, axis='y')
+# key_points_x, group_x_dict = post_process_groups.process_groups(key_points_x, axis='y')
+
+key_points_x = [(pnt['x'], pnt['y']) for pnt in key_points_x]
+group_x_dict = post_process_groups.get_inline_groups(key_points_x, max_consecutive_increase_count=4, axis_to_group='x')
 group_x_dict = extend_lines_x(binary_mask, group_x_dict)
 # new_image = draw_lines(new_image, group_x_dict, color=(0, 255, 0))
 # new_image = line_utils.draw_kps(new_image, key_points_x, color=(0,255,0))
 
 
-key_points_y, group_y_dict = post_process_groups.process_groups(key_points_y, axis='x')
+# key_points_y, group_y_dict = post_process_groups.process_groups(key_points_y, axis='x')
+key_points_y = [(pnt['x'], pnt['y']) for pnt in key_points_y]
+group_y_dict = post_process_groups.get_inline_groups(key_points_y, max_consecutive_increase_count=4, axis_to_group='y')
 group_y_dict = extend_lines_y(binary_mask, group_y_dict)
 # new_image = draw_lines(new_image, group_y_dict, color=(255, 127, 0))
 # new_image = line_utils.draw_kps(new_image, key_points_y, color=(255,127,))
