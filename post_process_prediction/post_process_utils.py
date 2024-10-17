@@ -49,7 +49,7 @@ def get_kp_first_hit_y(binary_mask, steps=10):
 
     kps = []
 
-    for y in range(starting_point[1], width, steps):
+    for y in range(starting_point[1], height-1, steps):
         for x in range(width-1, 0, -1):
             if binary_mask[y, x] == 255:
                 kps.append((x, y))
@@ -91,24 +91,24 @@ def extend_lines_y(binary_mask, group_dict):
 
 def find_intersections(horizontal_lines, vertical_lines):
     intersections = []
-    
+
     # Loop through each horizontal line
     for h_line in horizontal_lines:
         h_y = h_line['start_pos'][1]  # y-coordinate of the horizontal line
         h_x_start = min(h_line['start_pos'][0], h_line['end_pos'][0])
         h_x_end = max(h_line['start_pos'][0], h_line['end_pos'][0])
-        
+
         # Loop through each vertical line
         for v_line in vertical_lines:
             v_x = v_line['start_pos'][0]  # x-coordinate of the vertical line
             v_y_start = min(v_line['start_pos'][1], v_line['end_pos'][1])
             v_y_end = max(v_line['start_pos'][1], v_line['end_pos'][1])
-            
+
             # Check if the lines intersect
             if h_x_start <= v_x <= h_x_end and v_y_start <= h_y <= v_y_end:
                 # Intersection point is (v_x, h_y)
                 intersections.append((v_x, h_y))
-    
+
     return intersections
 
 
@@ -118,10 +118,10 @@ def keep_first_intersection_point_found_on_x_group(points, group_x_dict):
 
     for item in group_x_dict:
         line_x, line_y = item['start_pos']
-        for pnt in points: 
+        for pnt in points:
             pnt_x, pnt_y = pnt
             if pnt_y == line_y:
                 points_to_keep.append(pnt)
                 break
-    
+
     return points_to_keep
