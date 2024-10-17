@@ -15,7 +15,7 @@ def get_kaplan_meier_data_from_events(events:list, group:int):
     return df
 
 
-def rescale_coordinates_to_plot_values(intersection_points, plot_start_coord, plot_end_coord):
+def map_px_to_plot_coordinates(intersection_points, plot_start_coord, plot_end_coord):
 
     x_pixel_min, y_pixel_max = intersection_points[0]
     x_pixel_max, y_pixel_min = intersection_points[-1]

@@ -1,6 +1,15 @@
-from skimage import img_as_bool, morphology
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+
+from skimage import img_as_bool, morphology
+
+
+
+def load_binary_mask(path, min_px_value=127):
+    mask = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+    _, binary_mask = cv2.threshold(mask, min_px_value, 255, cv2.THRESH_BINARY)
+    return binary_mask
 
 
 def get_skeleton(mask):

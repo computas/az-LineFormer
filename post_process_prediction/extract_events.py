@@ -1,13 +1,13 @@
 import cv2 
+import pandas as pd
 
-from post_process_prediction._post_process_binary_mask_old import load_binary_mask
 import post_process_prediction.post_process_groups as post_process_groups
 import post_process_prediction.post_process_utils as post_process_utils
 import post_process_prediction.post_process_debug_draw as post_process_debug_draw
-from post_process_prediction.extract_data_from_coordinates import get_kaplan_meier_data_from_events, rescale_coordinates_to_plot_values
+from post_process_prediction.coordinates_to_data import get_kaplan_meier_data_from_events, map_px_to_plot_coordinates
 
                 
-def extract_event_coordinates(binary_mask):
+def extract_event_px_coordinates(binary_mask):
     debug_image = cv2.cvtColor(binary_mask, cv2.COLOR_GRAY2BGR)
 
     # Skeletonize
@@ -44,9 +44,23 @@ def extract_event_coordinates(binary_mask):
     
     # debug_image = post_process_debug_draw.draw_ponints(debug_image, [start_point, end_point], color=(217, 156, 177), radius=5)
     # debug_image = post_process_debug_draw.draw_km_lines(debug_image, intersection_points)
-
-
     return intersection_points, debug_image
+
+
+
+
+def extract_events(binary_mask, plot_start:tuple=(0, 1), plot_end:tuple=(890, 0), write_debug=False, map_to_plot_coordinates=False) -> pd.DataFrame:
+    event_coordinates, debug_image = extract_event_px_coordinates(binary_mask)
+
+    if map_to_plot_coordinates:
+        event_coordinates = map_px_to_plot_coordinates(event_coordinates, plot_start, plot_end)
+
+    if write_debug:
+        cv2.imwrite("sample_result_mask.png", debug_image)
+
+    df = get_kaplan_meier_data_from_events(event_coordinates, group=1)
+
+    return df
 
 
 
@@ -55,16 +69,8 @@ if __name__ == '__main__':
     # img_path = "sample_result_mask_3.png"
     # img_path = "inst_mask_3.png"
     img_path = "inst_mask_0.png"
-    binary_mask = load_binary_mask(img_path)
-    event_coordinates, debug_image = extract_event_coordinates(binary_mask)
 
-    real_start_point = (0, 1)
-    real_end_point = (890, 0)
-
-    event_coordinates = rescale_coordinates_to_plot_values(event_coordinates, real_start_point, real_end_point)
-    df = get_kaplan_meier_data_from_events(event_coordinates, group=1)
-
+    binary_mask = post_process_utils.load_binary_mask(img_path)
+    df = extract_events(binary_mask, write_debug=True, map_to_plot_coordinates=True)
     print(df)
-
-    cv2.imwrite("sample_result_mask.png", debug_image)
 
