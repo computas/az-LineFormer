@@ -22,11 +22,9 @@ def draw_ponints(img, pnt_list, radius=2, color=(0, 255, 255)):
 
 
 
-def draw_km_lines(img, intersection_points, start_point, end_point, color=(0, 0, 255)):
+def draw_km_lines(img, intersection_points, color=(0, 0, 255)):
     intersection_points = interpolate_points(intersection_points)
 
-    intersection_points.insert(0, start_point)
-    intersection_points.append(end_point)
     prev_point = None
     for point in intersection_points:
         if prev_point is None:

@@ -1,5 +1,4 @@
 import cv2 
-import line_utils
 
 from post_process_prediction._post_process_binary_mask_old import load_binary_mask
 import post_process_prediction.post_process_groups as post_process_groups
@@ -10,6 +9,8 @@ from post_process_prediction.extract_data_from_coordinates import get_kaplan_mei
                 
 def extract_event_coordinates(binary_mask):
     debug_image = cv2.cvtColor(binary_mask, cv2.COLOR_GRAY2BGR)
+
+    # Skeletonize
     binary_mask = post_process_utils.get_skeleton(binary_mask)
 
     # Find x-groups
@@ -31,15 +32,18 @@ def extract_event_coordinates(binary_mask):
     # Find intersections
     intersection_points = post_process_utils.find_intersections(group_x_dict, group_y_dict)
     intersection_points = post_process_utils.keep_first_intersection_point_found_on_x_group(intersection_points, group_x_dict)
+
     debug_image = post_process_debug_draw.draw_ponints(debug_image, intersection_points, color=(0, 238, 220), radius=5)
+
 
     # Add start and end coordinates
     start_point = group_x_dict[0]['start_pos']
     end_point = group_y_dict[-1]['start_pos']
     intersection_points.insert(0, start_point)
     intersection_points.append(end_point)
-    # debug_image = post_process_debug_draw.draw_ponints(debug_image, [start_point, end_point], color=(217, 156, 177), radius=5)
     
+    # debug_image = post_process_debug_draw.draw_ponints(debug_image, [start_point, end_point], color=(217, 156, 177), radius=5)
+    # debug_image = post_process_debug_draw.draw_km_lines(debug_image, intersection_points)
 
 
     return intersection_points, debug_image
