@@ -49,7 +49,7 @@ def extend_lines_x(binary_mask, group_dict):
     height, width = binary_mask.shape
     for item in group_dict:
         _item = item.copy()
-        x, y = item['start_pos']
+        x, y = (int(coord) for coord in item['start_pos'])
         x = int(x)
         y = int(y)
 
@@ -66,9 +66,7 @@ def extend_lines_y(binary_mask, group_dict):
     height, width = binary_mask.shape
     for item in group_dict:
         _item = item.copy()
-        x, y = item['end_pos']
-        x = int(x)
-        y = int(y)
+        x, y = (int(coord) for coord in item['end_pos'])
 
         _item['start_pos'] = (x, y)
         _item['end_pos'] = (x, 0)
