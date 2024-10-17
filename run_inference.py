@@ -2,7 +2,7 @@ import infer
 import pandas as pd
 import cv2
 import line_utils
-from post_process_binary_mask import post_process_binary_mask, detect_events, get_kaplan_meier_data_from_events
+from post_process_prediction._post_process_binary_mask_old import post_process_binary_mask, detect_events, get_kaplan_meier_data_from_events
 
 CKPT = "iter.pth"
 CONFIG = "km_swin_t_config.py"

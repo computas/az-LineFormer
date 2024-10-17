@@ -5,10 +5,10 @@ import infer
 from skimage import io, img_as_bool, morphology
 import matplotlib.pyplot as plt
 import numpy as np
-from post_process_binary_mask import load_binary_mask
+from post_process_prediction._post_process_binary_mask_old import load_binary_mask
 from collections import Counter
 
-from post_process_binary_mask import get_kaplan_meier_data_from_events
+from post_process_prediction._post_process_binary_mask_old import get_kaplan_meier_data_from_events
 
 
 def get_skeleton(mask):
