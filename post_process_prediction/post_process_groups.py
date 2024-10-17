@@ -33,7 +33,7 @@ def get_inline_groups(key_points, max_consecutive_increase_count=4, axis_to_grou
 
     prev_line = None
 
-    axis = 1 if axis_to_group == 'y' else 0
+    axis = 1 if axis_to_group == 'x' else 0
 
     for kp in key_points:
 
@@ -49,8 +49,6 @@ def get_inline_groups(key_points, max_consecutive_increase_count=4, axis_to_grou
         else:
             consecutive_increase_count = 0
 
-        prev_line = vote_on_line(current_inline_group, axis)
-
         # Start new inline group
         if consecutive_increase_count >= max_consecutive_increase_count:
             info = get_inline_group_info(
@@ -62,6 +60,8 @@ def get_inline_groups(key_points, max_consecutive_increase_count=4, axis_to_grou
             inline_groups_info.append(info)
             current_inline_group = [kp]
             consecutive_increase_count = 0
+
+        prev_line = vote_on_line(current_inline_group, axis)
 
 
     # Fill in last group
