@@ -72,7 +72,7 @@ img_path = "inst_mask_0.png"
 binary_mask = load_binary_mask(img_path)
 
 new_image = cv2.cvtColor(binary_mask, cv2.COLOR_GRAY2BGR)
-new_image = np.zeros((binary_mask.shape[0], binary_mask.shape[1], 3), dtype=np.uint8)
+# new_image = np.zeros((binary_mask.shape[0], binary_mask.shape[1], 3), dtype=np.uint8)
 binary_mask = get_skeleton(binary_mask)
 
 
@@ -171,13 +171,13 @@ def keep_first_point_found_on_x(points, group_x_dict):
 
 key_points_x, group_x_dict = post_process_groups.process_groups(key_points_x, axis='y')
 group_x_dict = extend_lines_x(binary_mask, group_x_dict)
-# new_image = draw_lines(new_image, group_x_dict, color=(0, 255, 0))
+new_image = draw_lines(new_image, group_x_dict, color=(0, 255, 0))
 # new_image = line_utils.draw_kps(new_image, key_points_x, color=(0,255,0))
 
 
 key_points_y, group_y_dict = post_process_groups.process_groups(key_points_y, axis='x')
 group_y_dict = extend_lines_y(binary_mask, group_y_dict)
-# new_image = draw_lines(new_image, group_y_dict, color=(255, 127, 0))
+new_image = draw_lines(new_image, group_y_dict, color=(255, 127, 0))
 # new_image = line_utils.draw_kps(new_image, key_points_y, color=(255,127,))
 
 
@@ -265,7 +265,7 @@ intersection_points = find_intersections(group_x_dict, group_y_dict)
 intersection_points = keep_first_point_found_on_x(intersection_points, group_x_dict)
 
 
-new_image = cv2.imread('plt_0.png')
+# new_image = cv2.imread('plt_0.png')
 new_image = draw_ponints(new_image, intersection_points, color=(0, 238, 220), radius=5)
 
 
