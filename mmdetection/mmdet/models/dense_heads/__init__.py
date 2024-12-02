@@ -24,6 +24,7 @@ from .gfl_head import GFLHead
 from .guided_anchor_head import FeatureAdaption, GuidedAnchorHead
 from .lad_head import LADHead
 from .ld_head import LDHead
+from .custom_mask2former_head import CustomMask2FormerHead
 from .mask2former_head import Mask2FormerHead
 from .maskformer_head import MaskFormerHead
 from .nasfcos_head import NASFCOSHead
@@ -44,6 +45,7 @@ from .yolact_head import YOLACTHead, YOLACTProtonet, YOLACTSegmHead
 from .yolo_head import YOLOV3Head
 from .yolof_head import YOLOFHead
 from .yolox_head import YOLOXHead
+from .custom_event_point_cnn import CustomEventPointCNN
 
 __all__ = [
     'AnchorFreeHead', 'AnchorHead', 'GuidedAnchorHead', 'FeatureAdaption',
@@ -57,6 +59,6 @@ __all__ = [
     'DETRHead', 'YOLOFHead', 'DeformableDETRHead', 'SOLOHead',
     'DecoupledSOLOHead', 'CenterNetHead', 'YOLOXHead',
     'DecoupledSOLOLightHead', 'LADHead', 'TOODHead', 'MaskFormerHead',
-    'Mask2FormerHead', 'SOLOV2Head', 'DDODHead', 'AscendAnchorHead',
-    'AscendRetinaHead', 'AscendSSDHead'
+    'Mask2FormerHead', 'CustomMask2FormerHead', 'SOLOV2Head', 'DDODHead', 
+    'AscendAnchorHead', 'AscendRetinaHead', 'AscendSSDHead', 'CustomEventPointCNN'
 ]

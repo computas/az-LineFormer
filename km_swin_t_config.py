@@ -21,40 +21,6 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 
 
-train_pipeline_LineEX = [
-    dict(type='LoadImageFromFile', to_float32=True),
-    dict(
-        type='LoadAnnotations', with_bbox=True, with_mask=True,
-        with_seg=False),
-    dict(
-        type='RandomFlip',
-        flip_ratio=[0.3, 0.3],
-        direction=['horizontal', 'vertical']),
-    # dict(type='RandomShift', shift_ratio=0.3, max_shift_px=min(image_size)//10),
-    # dict(
-    #     type='RandomCrop',
-    #     crop_ratio=0.3,
-    #     crop_size=(int(0.85*image_size[0]), int(0.85*image_size[1])),
-    #     crop_type='absolute',
-    #     recompute_bbox=False,
-    #     allow_negative_crop=True),
-    dict(
-        type='Resize',
-        img_scale=[image_size],
-        ratio_range=None,
-        multiscale_mode='value',
-        keep_ratio=True),
-    dict(
-        type='Pad',
-        size=image_size,
-        pad_val=dict(img=(255, 255, 255), masks=0, seg=255)),
-    dict(
-        type='Normalize', **img_norm_cfg),
-    dict(type='DefaultFormatBundle', img_to_float=True),
-    dict(type='Collect', keys=['img', 'gt_labels', 'gt_bboxes', 'gt_masks'])
-]
-
-
 train_pipeline = [
     dict(type='LoadImageFromFile', to_float32=True),
     dict(
@@ -62,26 +28,9 @@ train_pipeline = [
         with_seg=False),
     dict(
         type='RandomFlip',
-        flip_ratio=[0.3, 0.3],
-        direction=['horizontal', 'vertical']),
+        flip_ratio=[],
+        direction=[]),
     dict(type='RandomShift', shift_ratio=0.3, max_shift_px=min(image_size)//10),
-    dict(
-        type='RandomCrop',
-        crop_ratio=0.3,
-        crop_size=(int(0.85*image_size[0]), int(0.85*image_size[1])),
-        crop_type='absolute',
-        recompute_bbox=False,
-        allow_negative_crop=True),
-    dict(
-        type='Resize',
-        img_scale=[image_size],
-        ratio_range=None,
-        multiscale_mode='value',
-        keep_ratio=True),
-    dict(
-        type='Pad',
-        size=image_size,
-        pad_val=dict(img=(255, 255, 255), masks=0, seg=255)),
     dict(
         type='Normalize', **img_norm_cfg),
     dict(type='DefaultFormatBundle', img_to_float=True),
@@ -104,15 +53,9 @@ test_pipeline = [
         ])
 ]
 
-PMC_test_data = dict(
-        type='CocoDataset',
-        classes=classes,
-        ann_file=data_root + 'coco_pmc_unclean/annotations/val_coco_annot.json',
-        img_prefix=data_root + 'coco_pmc_unclean/val_images',
-        pipeline=test_pipeline)
 
 FineTuneTrainDataset = dict(
-        type='CocoDataset',
+        type='CustomCocoDataset',
         classes=classes,
         ann_file='dataset/train/coco_annot.json',
         img_prefix='dataset',
@@ -120,7 +63,7 @@ FineTuneTrainDataset = dict(
 )
 
 FineTuneTestDataset = dict(
-        type='CocoDataset',
+        type='CustomCocoDataset',
         classes=classes,
         ann_file='dataset/test/coco_annot.json',
         img_prefix='dataset',
@@ -162,7 +105,7 @@ opencv_num_threads = 0
 mp_start_method = 'fork'
 auto_scale_lr = dict(enable=False, base_batch_size=16)
 model = dict(
-    type='Mask2Former',
+    type='CustomMask2Former',
     backbone=dict(
         type='SwinTransformer',
         embed_dims=96,
@@ -186,7 +129,7 @@ model = dict(
             'https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth'
         )),
     panoptic_head=dict(
-        type='Mask2FormerHead',
+        type='CustomMask2FormerHead',
         in_channels=[96, 192, 384, 768],
         strides=[4, 8, 16, 32],
         feat_channels=256,
