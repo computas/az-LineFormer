@@ -36,9 +36,11 @@ class CustomMask2Former(Mask2Former):
                     gt_bboxes,
                     gt_labels,
                     gt_masks,
+                    gt_event_points,
                     gt_semantic_seg=None,
                     gt_bboxes_ignore=None,
                     **kargs):
+                
         """
         Args:
             img (Tensor): of shape (N, C, H, W) encoding input images.
@@ -73,12 +75,12 @@ class CustomMask2Former(Mask2Former):
 
         
         # Pass all_mask_preds through the custom event point prediction CNN
-        # event_point_coords = self.event_point_cnn(all_mask_preds)
+        event_point_coords = self.event_point_cnn(all_mask_preds)
 
         # Compute losses for event points (we'll create a custom loss function)
-        # event_loss = self.event_point_loss(event_point_coords, gt_bboxes)
+        event_loss = self.event_point_loss(event_point_coords, gt_event_points)
 
-        # losses.update(event_loss)  # Add event point loss to the final losses
+        losses.update(event_loss)  # Add event point loss to the final losses
 
 
         return losses
