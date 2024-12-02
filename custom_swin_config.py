@@ -24,8 +24,8 @@ img_norm_cfg = dict(
 train_pipeline = [
     dict(type='LoadImageFromFile', to_float32=True),
     dict(
-        type='LoadAnnotations', with_bbox=True, with_mask=True,
-        with_seg=False),
+        type='CustomLoadAnnotations', with_bbox=True, with_mask=True,
+        with_seg=False, with_event_points=True),
     dict(
         type='RandomFlip',
         flip_ratio=[],
@@ -33,8 +33,8 @@ train_pipeline = [
     dict(type='RandomShift', shift_ratio=0.3, max_shift_px=min(image_size)//10),
     dict(
         type='Normalize', **img_norm_cfg),
-    dict(type='DefaultFormatBundle', img_to_float=True),
-    dict(type='Collect', keys=['img', 'gt_labels', 'gt_bboxes', 'gt_masks'])
+    dict(type='CustomDefaultFormatBundle', img_to_float=True),
+    dict(type='Collect', keys=['img', 'gt_labels', 'gt_bboxes', 'gt_masks', 'gt_event_points'])
 ]
 
 test_pipeline = [
@@ -227,6 +227,9 @@ model = dict(
         num_stuff_classes=num_stuff_classes,
         loss_panoptic=None,
         init_cfg=None),
+    event_point_head=dict(
+        type='CustomEventPointHead'
+    ),
     train_cfg=dict(
         num_points=12544,
         oversample_ratio=3.0,

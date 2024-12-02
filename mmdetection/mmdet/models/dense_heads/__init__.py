@@ -45,7 +45,7 @@ from .yolact_head import YOLACTHead, YOLACTProtonet, YOLACTSegmHead
 from .yolo_head import YOLOV3Head
 from .yolof_head import YOLOFHead
 from .yolox_head import YOLOXHead
-from .custom_event_point_cnn import CustomEventPointCNN
+from .custom_event_point_head import CustomEventPointHead
 
 __all__ = [
     'AnchorFreeHead', 'AnchorHead', 'GuidedAnchorHead', 'FeatureAdaption',
@@ -60,5 +60,5 @@ __all__ = [
     'DecoupledSOLOHead', 'CenterNetHead', 'YOLOXHead',
     'DecoupledSOLOLightHead', 'LADHead', 'TOODHead', 'MaskFormerHead',
     'Mask2FormerHead', 'CustomMask2FormerHead', 'SOLOV2Head', 'DDODHead', 
-    'AscendAnchorHead', 'AscendRetinaHead', 'AscendSSDHead', 'CustomEventPointCNN'
+    'AscendAnchorHead', 'AscendRetinaHead', 'AscendSSDHead', 'CustomEventPointHead'
 ]

@@ -17,6 +17,7 @@ class CustomMask2Former(Mask2Former):
                  neck=None,
                  panoptic_head=None,
                  panoptic_fusion_head=None,
+                 event_point_head=None,
                  train_cfg=None,
                  test_cfg=None,
                  init_cfg=None):
@@ -28,6 +29,8 @@ class CustomMask2Former(Mask2Former):
             train_cfg=train_cfg,
             test_cfg=test_cfg,
             init_cfg=init_cfg)
+        
+        self.event_point_head = event_point_head
     
 
     def forward_train(self,
@@ -75,7 +78,7 @@ class CustomMask2Former(Mask2Former):
 
         
         # Pass all_mask_preds through the custom event point prediction CNN
-        event_point_coords = self.event_point_cnn(all_mask_preds)
+        event_point_coords = self.event_point_head(all_mask_preds)
 
         # Compute losses for event points (we'll create a custom loss function)
         event_loss = self.event_point_loss(event_point_coords, gt_event_points)

@@ -6,9 +6,9 @@ from ..builder import DETECTORS
 
 
 @DETECTORS.register_module()
-class CustomEventPointCNN(nn.Module):
+class CustomEventPointHead(nn.Module):
     def __init__(self, input_channels=1, output_points=500):
-        super(CustomEventPointCNN, self).__init__()
+        super(CustomEventPointHead, self).__init__()
         
         # Define CNN layers (simplified architecture)
         self.conv1 = nn.Conv2d(input_channels, 32, kernel_size=3, stride=1, padding=1)
