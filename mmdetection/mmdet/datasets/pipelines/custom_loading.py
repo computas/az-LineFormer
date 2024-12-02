@@ -1,5 +1,5 @@
 from ..builder import PIPELINES
-from loading import LoadAnnotations
+from .loading import LoadAnnotations
 
 
 @PIPELINES.register_module()
@@ -14,8 +14,7 @@ class CustomLoadAnnotations(LoadAnnotations):
                  denorm_bbox=False,
                  file_client_args=dict(backend='disk')):
 
-        super().__init__(self,
-                 with_bbox,
+        super().__init__(with_bbox,
                  with_label,
                  with_mask,
                  with_seg,
@@ -42,7 +41,7 @@ class CustomLoadAnnotations(LoadAnnotations):
     
 
     def __call__(self, results):
-        results = super().__call__(self, results)
+        results = super().__call__(results)
         if self.with_event_points:
             results = self._load_event_points(results)
         return results

@@ -14,11 +14,11 @@ class CustomDefaultFormatBundle(DefaultFormatBundle):
     def __init__(self,
                  img_to_float=True,
                  pad_val=dict(img=0, masks=0, seg=255)):
-        super().__init__(self, img_to_float, pad_val)
+        super().__init__(img_to_float, pad_val)
 
 
     def __call__(self, results):
-        super().__call__(self, results)
+        super().__call__(results)
 
         # Add custom event point field
         if 'gt_event_points' in results:
