@@ -19,6 +19,7 @@ class CustomEventPointHead(nn.Module):
         # Fully connected layer to predict the (x, y) coordinates
         self.fc = nn.Linear(128 * 64 * 64, output_points * 2)  # Output 500 points, each with 2 coordinates (x, y)
     
+    
     def forward_train(self, x):
         # Pass through CNN layers
         x = F.relu(self.conv1(x))

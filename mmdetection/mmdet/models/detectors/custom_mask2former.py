@@ -1,7 +1,8 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+import copy
 import torch.nn.functional as F
 
-from ..builder import DETECTORS
+from ..builder import DETECTORS, build_head
 from .mask2former import Mask2Former
 from .single_stage import SingleStageDetector
 
@@ -30,6 +31,13 @@ class CustomMask2Former(Mask2Former):
             test_cfg=test_cfg,
             init_cfg=init_cfg)
         
+
+
+        event_point_head_ = copy.deepcopy(event_point_head)
+        event_point_head_.update(train_cfg=train_cfg)
+        event_point_head_.update(test_cfg=test_cfg)
+        self.panoptic_head = build_head(event_point_head_)
+
         self.event_point_head = event_point_head
     
 
