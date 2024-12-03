@@ -86,11 +86,21 @@ class CustomMask2Former(Mask2Former):
         # Compute losses for event points (we'll create a custom loss function)
         # event_loss = self.event_point_loss(event_point_coords, gt_event_points)
         
-        event_loss = self.event_point_head(all_mask_preds)
+        # Get outputs from panoptic head
+        losses, all_cls_scores, all_mask_preds = self.panoptic_head.forward_train(
+            x, img_metas, gt_bboxes, gt_labels, gt_masks, gt_semantic_seg, gt_bboxes_ignore)
 
-        losses.update(event_loss)  # Add event point loss to the final losses
+        # Process all_mask_preds for event point head input
+        if isinstance(all_mask_preds, list):
+            mask_pred_input = all_mask_preds[-1]  # Example: use last level
+        else:
+            mask_pred_input = all_mask_preds
 
+        if len(mask_pred_input.shape) == 3:  # Add channel dim if missing
+            mask_pred_input = mask_pred_input.unsqueeze(1)
 
-        return losses
-    
-    
+        # Compute event point head losses
+        event_point_losses = self.event_point_head.forward_train(mask_pred_input, gt_event_points)
+        losses.update(event_point_losses)
+
+        return losses    

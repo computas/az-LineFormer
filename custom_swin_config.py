@@ -228,7 +228,9 @@ model = dict(
         loss_panoptic=None,
         init_cfg=None),
     event_point_head=dict(
-        type='CustomEventPointHead'
+        type='CustomEventPointHead',
+        input_channels=256,  # Match the channels of mask_pred_input
+        output_points=500
     ),
     train_cfg=dict(
         num_points=12544,
