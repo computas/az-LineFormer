@@ -32,13 +32,8 @@ class CustomMask2Former(Mask2Former):
             init_cfg=init_cfg)
         
 
-
         event_point_head_ = copy.deepcopy(event_point_head)
-        event_point_head_.update(train_cfg=train_cfg)
-        event_point_head_.update(test_cfg=test_cfg)
-        self.panoptic_head = build_head(event_point_head_)
-
-        self.event_point_head = event_point_head
+        self.event_point_head = build_head(event_point_head_)
     
 
     def forward_train(self,
@@ -86,25 +81,16 @@ class CustomMask2Former(Mask2Former):
 
         
         # Pass all_mask_preds through the custom event point prediction CNN
-        event_point_coords = self.event_point_head(all_mask_preds)
+        # event_point_coords = self.event_point_head(all_mask_preds)
 
         # Compute losses for event points (we'll create a custom loss function)
-        event_loss = self.event_point_loss(event_point_coords, gt_event_points)
+        # event_loss = self.event_point_loss(event_point_coords, gt_event_points)
+        
+        event_loss = self.event_point_head(all_mask_preds)
 
         losses.update(event_loss)  # Add event point loss to the final losses
 
 
         return losses
     
-
-    def event_point_loss(self, pred_coords, true_coords):
-        """
-        Custom loss function for event point regression.
-        Args:
-            pred_coords (Tensor): Predicted coordinates of shape (batch_size, N_max, 2)
-            true_coords (Tensor): Ground truth coordinates of shape (batch_size, N_max, 2)
-        """
-        # Assuming we want to compute MSE loss for the coordinates
-        loss = F.mse_loss(pred_coords, true_coords, reduction='mean')
-        return loss
     
