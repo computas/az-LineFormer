@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import copy
+import torch
 import torch.nn.functional as F
 
 from ..builder import DETECTORS, build_head
@@ -78,29 +79,35 @@ class CustomMask2Former(Mask2Former):
                                                                                     gt_labels, gt_masks,
                                                                                     gt_semantic_seg,
                                                                                     gt_bboxes_ignore)
+        
+        print(len(all_cls_scores))
+        print(all_cls_scores[0])
+        print()
+        print(len(all_mask_preds))
+        print(all_mask_preds[0])
+
+        all_pan_results = []
+        for mask_cls_result, mask_pred_result in zip(all_cls_scores, all_mask_preds):
+            pan_result = self.panoptic_fusion_head.panoptic_postprocess(mask_cls_result, mask_pred_result)
+            all_pan_results.append(pan_result)
+
+        print()
+        print(len(all_pan_results))
+        print(all_pan_results[0])
+
 
         
-        # Pass all_mask_preds through the custom event point prediction CNN
-        # event_point_coords = self.event_point_head(all_mask_preds)
 
-        # Compute losses for event points (we'll create a custom loss function)
-        # event_loss = self.event_point_loss(event_point_coords, gt_event_points)
-        
-        # Get outputs from panoptic head
-        losses, all_cls_scores, all_mask_preds = self.panoptic_head.forward_train(
-            x, img_metas, gt_bboxes, gt_labels, gt_masks, gt_semantic_seg, gt_bboxes_ignore)
-
-        # Process all_mask_preds for event point head input
-        if isinstance(all_mask_preds, list):
-            mask_pred_input = all_mask_preds[-1]  # Example: use last level
-        else:
-            mask_pred_input = all_mask_preds
-
-        if len(mask_pred_input.shape) == 3:  # Add channel dim if missing
-            mask_pred_input = mask_pred_input.unsqueeze(1)
 
         # Compute event point head losses
-        event_point_losses = self.event_point_head.forward_train(mask_pred_input, gt_event_points)
+        event_point_losses = self.event_point_head.forward_train(all_mask_preds, gt_event_points)
         losses.update(event_point_losses)
 
         return losses    
+
+
+    def preprocess_pan_results(self, pan_results, target_shape):
+        # Resize masks to a fixed size (e.g., target_shape) if needed
+        resized_masks = [F.interpolate(mask.unsqueeze(0), size=target_shape, mode='bilinear', align_corners=False)
+                        for mask in pan_results]
+        return torch.stack(resized_masks)  # Shape: (N, C, H, W)
